@@ -40,6 +40,10 @@ impl Spaceship {
         self.position
     }
 
+    pub fn get_direction(&self) -> f32 {
+        self.rotation
+    }
+
     pub fn set_push(&mut self, push: bool) {
         self.push = push;
     }
