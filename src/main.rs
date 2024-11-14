@@ -2,7 +2,7 @@ use asteroid::Asteroid;
 use macroquad::prelude::*;
 use missile::Missile;
 use spaceship::Spaceship;
-use std::io;
+//use std::io;
 
 mod asteroid;
 mod missile;
@@ -162,7 +162,7 @@ fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missi
     false
 }
 
-#[macroquad::main("BasicShapes")]
+#[macroquad::main("Asteroids game")]
 async fn main() {
     let mut asteroids = Vec::new();
     let mut spaceship = Spaceship::new();
@@ -170,32 +170,54 @@ async fn main() {
 
     let mut difficulty = 0;
 
-    println!("Please select a difficulty level:");
-    println!("1. Easy");
-    println!("2. Medium");
-    println!("3. Hard");
+    let mut selected_difficulty = false;
 
-    println!("Enter your choice (1, 2, or 3): ");
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    let choice = input.trim();
+    while !selected_difficulty {
+        clear_background(BLACK);
 
-    match choice {
-        "1" => {
-            println!("You selected Easy difficulty.");
-            difficulty = 5;
+        //Les paramètres sont créés dans la boucle while afin de pouvoir 
+        //modifier la taille de la fenêtre de jeu en fonction des besoins 
+        //de l'utilisateur, sans affecter la jouabilité.
+        let screen_width = screen_width();
+        let screen_height = screen_height();
+
+        let button_width = screen_width * 0.4;
+        let button_height = screen_height * 0.1;
+        let font_size = screen_height * 0.05;
+        let title_font_size = screen_height * 0.08;
+
+        let button_x = (screen_width - button_width) / 2.0;
+        let easy_y = screen_height * 0.3;
+        let medium_y = easy_y + button_height + screen_height * 0.05;
+        let hard_y = medium_y + button_height + screen_height * 0.05;
+
+        draw_text("Select Difficulty", screen_width * 0.3, screen_height * 0.2, title_font_size, WHITE);
+
+        if is_mouse_button_pressed(MouseButton::Left) {
+            let (mx, my) = mouse_position();
+
+            if mx >= button_x && mx <= button_x + button_width && my >= easy_y && my <= easy_y + button_height {
+                difficulty = 5;
+                selected_difficulty = true;
+            } else if mx >= button_x && mx <= button_x + button_width && my >= medium_y && my <= medium_y + button_height {
+                difficulty = 30;
+                selected_difficulty = true;
+            } else if mx >= button_x && mx <= button_x + button_width && my >= hard_y && my <= hard_y + button_height {
+                difficulty = 100;
+                selected_difficulty = true;
+            }
         }
-        "2" => {
-            println!("You selected Medium difficulty.");
-            difficulty = 30;
-        }
-        "3" => {
-            println!("You selected Hard difficulty.");
-            difficulty = 100;
-        }
-        _ => println!("Invalid choice, please enter 1, 2, or 3."),
+
+        draw_rectangle(button_x, easy_y, button_width, button_height, DARKGRAY);
+        draw_text("Easy", button_x + button_width * 0.4, easy_y + button_height * 0.6, font_size, WHITE);
+
+        draw_rectangle(button_x, medium_y, button_width, button_height, DARKGRAY);
+        draw_text("Medium", button_x + button_width * 0.35, medium_y + button_height * 0.6, font_size, WHITE);
+
+        draw_rectangle(button_x, hard_y, button_width, button_height, DARKGRAY);
+        draw_text("Hard", button_x + button_width * 0.4, hard_y + button_height * 0.6, font_size, WHITE);
+
+        next_frame().await;
     }
 
     for _ in 0..difficulty {
@@ -203,6 +225,8 @@ async fn main() {
     }
 
     loop {
+        clear_background(BLACK);
+
         draw(&asteroids, &spaceship, &missiles);
 
         if handle_input(&mut spaceship, &mut missiles) {
