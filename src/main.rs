@@ -2,6 +2,8 @@ use asteroid::Asteroid;
 use macroquad::prelude::*;
 use missile::Missile;
 use spaceship::Spaceship;
+use std::thread;
+use std::time::Duration;
 //use std::io;
 
 mod asteroid;
@@ -19,6 +21,20 @@ fn draw(asteroids: &[Asteroid], spaceship: &Spaceship, missiles: &[Missile]) {
 
 fn draw_background() {
     clear_background(BLACK);
+}
+
+fn draw_game_over() {
+    let screen_width = screen_width();
+    let screen_height = screen_height();
+    let font_size = screen_height * 0.1;
+    draw_text("Game Over", screen_width * 0.4, screen_height * 0.5, font_size, RED);
+}
+
+fn draw_you_win() {
+    let screen_width = screen_width();
+    let screen_height = screen_height();
+    let font_size = screen_height * 0.1;
+    draw_text("You Win!", screen_width * 0.4, screen_height * 0.5, font_size, GREEN);
 }
 
 fn draw_asteroids(asteroids: &[Asteroid]) {
@@ -107,7 +123,7 @@ fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missi
     for asteroid in asteroids.iter() {
         let distance = asteroid.get_position().distance(spaceship.get_position());
         if distance < asteroid.get_size() / 2.0 + Spaceship::SIZE / 2.0 {
-            println!("Game Over!");
+            draw_game_over();
             return true;
         }
     }
@@ -155,7 +171,7 @@ fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missi
 
     //game win
     if asteroids.is_empty() {
-        println!("You win!");
+        draw_you_win();
         return true;
     }
 
@@ -236,6 +252,8 @@ async fn main() {
         update_model(&mut asteroids, &mut spaceship, &mut missiles);
 
         if handle_collisions(&mut asteroids, &spaceship, &mut missiles) {
+            next_frame().await;
+            thread::sleep(Duration::from_secs(3));
             break;
         }
 
