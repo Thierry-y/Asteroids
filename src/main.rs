@@ -10,8 +10,8 @@ mod asteroid;
 mod missile;
 mod spaceship;
 
-fn draw(asteroids: &[Asteroid], spaceship: &Spaceship, missiles: &[Missile]) {
-    draw_background();
+fn draw(asteroids: &[Asteroid], spaceship: &Spaceship, missiles: &[Missile], texture: &Texture2D) {
+    draw_background(texture);
     draw_asteroids(asteroids);
     spaceship.draw();
     for missile in missiles {
@@ -19,9 +19,11 @@ fn draw(asteroids: &[Asteroid], spaceship: &Spaceship, missiles: &[Missile]) {
     }
 }
 
-fn draw_background() {
-    clear_background(BLACK);
+fn draw_background(background_texture: &Texture2D) {
+    draw_texture(background_texture, 0.0, 0.0, WHITE);
 }
+
+
 
 fn draw_game_over() {
     let screen_width = screen_width();
@@ -180,6 +182,8 @@ fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missi
 
 #[macroquad::main("Asteroids game")]
 async fn main() {
+    let background_texture = load_texture("asteroide.png").await.unwrap();
+    background_texture.set_filter(FilterMode::Nearest);
     let mut asteroids = Vec::new();
     let mut spaceship = Spaceship::new();
     let mut missiles = Vec::new();
@@ -243,7 +247,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        draw(&asteroids, &spaceship, &missiles);
+        draw(&asteroids, &spaceship, &missiles, &background_texture);
 
         if handle_input(&mut spaceship, &mut missiles) {
             break;
