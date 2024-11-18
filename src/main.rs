@@ -99,9 +99,6 @@ fn update_model(
     }
 }
 
-//La logique de collision a été modifiée : si deux astéroïdes entrent en collision,
-//ceux de même taille se divisent, tandis que si leur taille est différente,
-//c'est le plus petit qui se divise.
 fn handle_collisions(
     asteroids: &mut Vec<Asteroid>,
     spaceship: &Spaceship,
@@ -109,8 +106,34 @@ fn handle_collisions(
 ) -> bool {
     let mut new_asteroids = vec![];
     let mut to_remove = vec![];
+    handle_asteroid_collisions(asteroids, &mut new_asteroids, &mut to_remove);
 
-    //collision asteroids asteroids
+    if handle_spaceship_asteroid_collision(asteroids, spaceship) {
+        draw_game_over();
+        return true;
+    }
+
+    handle_missile_asteroid_collisions(missiles, asteroids, &mut new_asteroids, &mut to_remove);
+
+    remove_collided_asteroids(asteroids, &to_remove);
+
+    asteroids.extend(new_asteroids);
+
+    if asteroids.is_empty() {
+        draw_you_win();
+        return true;
+    }
+
+    false
+}
+
+//si deux astéroïdes entrent en collision,ceux de même taille se divisent,
+//tandis que si leur taille est différente,c'est le plus petit qui se divise.
+fn handle_asteroid_collisions(
+    asteroids: &mut Vec<Asteroid>,
+    new_asteroids: &mut Vec<Asteroid>,
+    to_remove: &mut Vec<usize>,
+) {
     for i in 0..asteroids.len() {
         for j in (i + 1)..asteroids.len() {
             let asteroid_a = &asteroids[i];
@@ -136,16 +159,23 @@ fn handle_collisions(
             }
         }
     }
+}
 
-    //collision spaceship asteroids
+fn handle_spaceship_asteroid_collision(asteroids: &[Asteroid], spaceship: &Spaceship) -> bool {
     for asteroid in asteroids.iter() {
         if spaceship.collide(asteroid) {
-            draw_game_over();
             return true;
         }
     }
+    false
+}
 
-    //collision missiles asteroids
+fn handle_missile_asteroid_collisions(
+    missiles: &mut Vec<Missile>,
+    asteroids: &mut Vec<Asteroid>,
+    new_asteroids: &mut Vec<Asteroid>,
+    to_remove: &mut Vec<usize>,
+) {
     for missile in missiles.iter_mut() {
         if !missile.is_active() {
             continue;
@@ -173,25 +203,18 @@ fn handle_collisions(
             }
         }
     }
+}
 
-    //Remove collided asteroids
-    to_remove.sort_unstable();
-    to_remove.dedup();
-    for &index in to_remove.iter().rev() {
+fn remove_collided_asteroids(asteroids: &mut Vec<Asteroid>, to_remove: &[usize]) {
+    let mut to_remove_sorted = to_remove.to_vec();
+    to_remove_sorted.sort_unstable();
+    to_remove_sorted.dedup();
+
+    for &index in to_remove_sorted.iter().rev() {
         if index < asteroids.len() {
             asteroids.remove(index);
         }
     }
-
-    asteroids.extend(new_asteroids);
-
-    // Check for game win
-    if asteroids.is_empty() {
-        draw_you_win();
-        return true;
-    }
-
-    false
 }
 
 #[macroquad::main("Asteroids game")]
