@@ -4,11 +4,13 @@ use missile::Missile;
 use spaceship::Spaceship;
 use std::thread;
 use std::time::Duration;
+use stellarobject::StellarObject;
 //use std::io;
 
 mod asteroid;
 mod missile;
 mod spaceship;
+mod stellarobject;
 
 fn draw(asteroids: &[Asteroid], spaceship: &Spaceship, missiles: &[Missile], texture: &Texture2D) {
     draw_background(texture);
@@ -27,14 +29,26 @@ fn draw_game_over() {
     let screen_width = screen_width();
     let screen_height = screen_height();
     let font_size = screen_height * 0.1;
-    draw_text("Game Over", screen_width * 0.4, screen_height * 0.5, font_size, RED);
+    draw_text(
+        "Game Over",
+        screen_width * 0.4,
+        screen_height * 0.5,
+        font_size,
+        RED,
+    );
 }
 
 fn draw_you_win() {
     let screen_width = screen_width();
     let screen_height = screen_height();
     let font_size = screen_height * 0.1;
-    draw_text("You Win!", screen_width * 0.4, screen_height * 0.5, font_size, GREEN);
+    draw_text(
+        "You Win!",
+        screen_width * 0.4,
+        screen_height * 0.5,
+        font_size,
+        GREEN,
+    );
 }
 
 fn draw_asteroids(asteroids: &[Asteroid]) {
@@ -70,7 +84,11 @@ fn handle_input(spaceship: &mut Spaceship, missiles: &mut Vec<Missile>) -> bool 
     false
 }
 
-fn update_model(asteroids: &mut [Asteroid], spaceship: &mut Spaceship, missiles: &mut Vec<Missile>) {
+fn update_model(
+    asteroids: &mut [Asteroid],
+    spaceship: &mut Spaceship,
+    missiles: &mut Vec<Missile>,
+) {
     for asteroid in asteroids {
         asteroid.move_object();
     }
@@ -84,20 +102,21 @@ fn update_model(asteroids: &mut [Asteroid], spaceship: &mut Spaceship, missiles:
 //La logique de collision a été modifiée : si deux astéroïdes entrent en collision,
 //ceux de même taille se divisent, tandis que si leur taille est différente,
 //c'est le plus petit qui se divise.
-fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missiles: &mut Vec<Missile>) -> bool {
+fn handle_collisions(
+    asteroids: &mut Vec<Asteroid>,
+    spaceship: &Spaceship,
+    missiles: &mut Vec<Missile>,
+) -> bool {
     let mut new_asteroids = vec![];
     let mut to_remove = vec![];
 
-    //collision asteroides
+    //collision asteroids asteroids
     for i in 0..asteroids.len() {
         for j in (i + 1)..asteroids.len() {
             let asteroid_a = &asteroids[i];
             let asteroid_b = &asteroids[j];
 
-            let distance = asteroid_a
-                .get_position()
-                .distance(asteroid_b.get_position());
-            if distance < (asteroid_a.get_size() + asteroid_b.get_size()) / 2.0 {
+            if asteroid_a.collide(asteroid_b) {
                 if (asteroid_a.get_size() - asteroid_b.get_size()).abs() < f32::EPSILON {
                     to_remove.push(i);
                     to_remove.push(j);
@@ -118,26 +137,22 @@ fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missi
         }
     }
 
-
-    //collision spacenship asteroides
+    //collision spaceship asteroids
     for asteroid in asteroids.iter() {
-        let distance = asteroid.get_position().distance(spaceship.get_position());
-        if distance < asteroid.get_size() / 2.0 + Spaceship::SIZE / 2.0 {
+        if spaceship.collide(asteroid) {
             draw_game_over();
             return true;
         }
     }
 
-
-    //collision missiles asteroides
+    //collision missiles asteroids
     for missile in missiles.iter_mut() {
         if !missile.is_active() {
             continue;
         }
 
         for (asteroid_index, asteroid) in asteroids.iter_mut().enumerate() {
-            let distance = missile.get_position().distance(asteroid.get_position());
-            if distance < asteroid.get_size() / 2.0 + Missile::SIZE / 2.0 {
+            if missile.collide(asteroid) {
                 missile.deactivate();
 
                 match asteroid.get_size() {
@@ -159,6 +174,7 @@ fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missi
         }
     }
 
+    //Remove collided asteroids
     to_remove.sort_unstable();
     to_remove.dedup();
     for &index in to_remove.iter().rev() {
@@ -169,7 +185,7 @@ fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missi
 
     asteroids.extend(new_asteroids);
 
-    //game win
+    // Check for game win
     if asteroids.is_empty() {
         draw_you_win();
         return true;
@@ -190,8 +206,8 @@ async fn main() {
     while !selected_difficulty {
         clear_background(BLACK);
 
-        //Les paramètres sont créés dans la boucle while afin de pouvoir 
-        //modifier la taille de la fenêtre de jeu en fonction des besoins 
+        //Les paramètres sont créés dans la boucle while afin de pouvoir
+        //modifier la taille de la fenêtre de jeu en fonction des besoins
         //de l'utilisateur, sans affecter la jouabilité.
         let screen_width = screen_width();
         let screen_height = screen_height();
@@ -206,31 +222,67 @@ async fn main() {
         let medium_y = easy_y + button_height + screen_height * 0.05;
         let hard_y = medium_y + button_height + screen_height * 0.05;
 
-        draw_text("Select Difficulty", screen_width * 0.3, screen_height * 0.2, title_font_size, WHITE);
+        draw_text(
+            "Select Difficulty",
+            screen_width * 0.3,
+            screen_height * 0.2,
+            title_font_size,
+            WHITE,
+        );
 
         if is_mouse_button_pressed(MouseButton::Left) {
             let (mx, my) = mouse_position();
 
-            if mx >= button_x && mx <= button_x + button_width && my >= easy_y && my <= easy_y + button_height {
+            if mx >= button_x
+                && mx <= button_x + button_width
+                && my >= easy_y
+                && my <= easy_y + button_height
+            {
                 difficulty = 5;
                 selected_difficulty = true;
-            } else if mx >= button_x && mx <= button_x + button_width && my >= medium_y && my <= medium_y + button_height {
+            } else if mx >= button_x
+                && mx <= button_x + button_width
+                && my >= medium_y
+                && my <= medium_y + button_height
+            {
                 difficulty = 30;
                 selected_difficulty = true;
-            } else if mx >= button_x && mx <= button_x + button_width && my >= hard_y && my <= hard_y + button_height {
+            } else if mx >= button_x
+                && mx <= button_x + button_width
+                && my >= hard_y
+                && my <= hard_y + button_height
+            {
                 difficulty = 100;
                 selected_difficulty = true;
             }
         }
 
         draw_rectangle(button_x, easy_y, button_width, button_height, DARKGRAY);
-        draw_text("Easy", button_x + button_width * 0.4, easy_y + button_height * 0.6, font_size, WHITE);
+        draw_text(
+            "Easy",
+            button_x + button_width * 0.4,
+            easy_y + button_height * 0.6,
+            font_size,
+            WHITE,
+        );
 
         draw_rectangle(button_x, medium_y, button_width, button_height, DARKGRAY);
-        draw_text("Medium", button_x + button_width * 0.35, medium_y + button_height * 0.6, font_size, WHITE);
+        draw_text(
+            "Medium",
+            button_x + button_width * 0.35,
+            medium_y + button_height * 0.6,
+            font_size,
+            WHITE,
+        );
 
         draw_rectangle(button_x, hard_y, button_width, button_height, DARKGRAY);
-        draw_text("Hard", button_x + button_width * 0.4, hard_y + button_height * 0.6, font_size, WHITE);
+        draw_text(
+            "Hard",
+            button_x + button_width * 0.4,
+            hard_y + button_height * 0.6,
+            font_size,
+            WHITE,
+        );
 
         next_frame().await;
     }
