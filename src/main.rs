@@ -23,8 +23,6 @@ fn draw_background(background_texture: &Texture2D) {
     draw_texture(background_texture, 0.0, 0.0, WHITE);
 }
 
-
-
 fn draw_game_over() {
     let screen_width = screen_width();
     let screen_height = screen_height();
@@ -184,9 +182,6 @@ fn handle_collisions(asteroids: &mut Vec<Asteroid>, spaceship: &Spaceship, missi
 async fn main() {
     let background_texture = load_texture("asteroide.png").await.unwrap();
     background_texture.set_filter(FilterMode::Nearest);
-    let mut asteroids = Vec::new();
-    let mut spaceship = Spaceship::new();
-    let mut missiles = Vec::new();
 
     let mut difficulty = 0;
 
@@ -240,12 +235,16 @@ async fn main() {
         next_frame().await;
     }
 
+    let mut asteroids = Vec::new();
+    let mut spaceship = Spaceship::new();
+    let mut missiles = Vec::new();
+
     for _ in 0..difficulty {
         asteroids.push(asteroid::Asteroid::new());
     }
 
     loop {
-        clear_background(BLACK);
+        //clear_background(BLACK);
 
         draw(&asteroids, &spaceship, &missiles, &background_texture);
 
