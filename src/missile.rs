@@ -12,7 +12,7 @@ impl Missile {
 
     pub fn new(spaceship_position: Vec2, spaceship_rotation: f32) -> Self {
         let direction = Vec2::from_angle(spaceship_rotation);
-        
+
         Self {
             position: spaceship_position,
             velocity: direction * Self::SPEED,
@@ -46,8 +46,20 @@ impl Missile {
     }
 
     fn bound_pos(pos: Vec2) -> bool {
-        let x = if pos.x < 0.0 { false } else if pos.x > screen_width() { false } else { true };
-        let y = if pos.y < 0.0 { false } else if pos.y > screen_height() { false } else { true };
+        let x = if pos.x < 0.0 {
+            false
+        } else if pos.x > screen_width() {
+            false
+        } else {
+            true
+        };
+        let y = if pos.y < 0.0 {
+            false
+        } else if pos.y > screen_height() {
+            false
+        } else {
+            true
+        };
         x & y
     }
 }

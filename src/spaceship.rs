@@ -4,12 +4,12 @@ use std::f32::consts::PI;
 pub struct Spaceship {
     position: Vec2,
     velocity: Vec2,
-    rotation: f32,     
-    push: bool,   
+    rotation: f32,
+    push: bool,
 }
 
 impl Spaceship {
-    pub const SIZE: f32 = 20.0;       
+    pub const SIZE: f32 = 20.0;
     pub const ROTATION_SPEED: f32 = 0.05;
     pub const SPEED: f32 = 0.1;
 
@@ -31,9 +31,9 @@ impl Spaceship {
         self.position += self.velocity;
         self.position = Self::bound_pos(self.position);
 
-        // Si aucun nouveau vecteur de vitesse n'est ajouté, 
+        // Si aucun nouveau vecteur de vitesse n'est ajouté,
         // la vitesse est multipliée par 0,99 à chaque fois pour provoquer un ralentissement progressif, simulant l'inertie du vaisseau spatial.
-        self.velocity *= 0.99;   
+        self.velocity *= 0.99;
     }
 
     pub fn get_position(&self) -> Vec2 {
@@ -70,15 +70,19 @@ impl Spaceship {
         );
     }
 
-    fn bound_pos(mut pos : Vec2) -> Vec2 {
+    fn bound_pos(mut pos: Vec2) -> Vec2 {
         pos.x = Self::bound_to(pos.x, screen_width());
         pos.y = Self::bound_to(pos.y, screen_height());
         pos
     }
 
-    fn bound_to(coord : f32, max : f32) -> f32 {
-        if coord < 0.0 { max - coord }
-        else if coord > max { coord - max }
-        else { coord }
+    fn bound_to(coord: f32, max: f32) -> f32 {
+        if coord < 0.0 {
+            max - coord
+        } else if coord > max {
+            coord - max
+        } else {
+            coord
+        }
     }
 }
