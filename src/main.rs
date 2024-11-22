@@ -12,7 +12,12 @@ mod missile;
 mod spaceship;
 mod stellarobject;
 
-fn draw(asteroids: &[Asteroid], spaceship: &Spaceship, missiles: &[Missile], texture: &Texture2D) {
+fn draw(
+    asteroids: &[Asteroid],
+    spaceship: &Spaceship,
+    missiles: &[Missile],
+    texture: &Texture2D,
+) {
     draw_background(texture);
     draw_asteroids(asteroids);
     spaceship.draw();
@@ -219,7 +224,9 @@ fn remove_collided_asteroids(asteroids: &mut Vec<Asteroid>, to_remove: &[usize])
 
 #[macroquad::main("Asteroids game")]
 async fn main() {
-    let background_texture = load_texture("asteroide.png").await.unwrap();
+    let background_texture = load_texture("../img/asteroide.png").await.unwrap();
+    background_texture.set_filter(FilterMode::Nearest);
+    let texture_spaceship = load_texture("../img/spaceship.png").await.unwrap();
     background_texture.set_filter(FilterMode::Nearest);
 
     let mut difficulty = 0;
@@ -311,7 +318,7 @@ async fn main() {
     }
 
     let mut asteroids = Vec::new();
-    let mut spaceship = Spaceship::new();
+    let mut spaceship = Spaceship::new(texture_spaceship);
     let mut missiles = Vec::new();
 
     for _ in 0..difficulty {
