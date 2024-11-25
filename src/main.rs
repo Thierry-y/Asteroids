@@ -1,3 +1,14 @@
+//! Jeu Asteroids développé avec Macroquad
+//!
+//! Ce programme implémente du jeu "Asteroids". Le joueur contrôle un vaisseau spatial pour éviter et détruire des astéroïdes en utilisant des missiles. Le jeu offre plusieurs niveaux de difficulté et détecte les collisions entre les objets (vaisseau, missiles, et astéroïdes).
+//!
+//! ## Contrôles
+//! - **Flèche gauche** : Tourner à gauche
+//! - **Flèche droite** : Tourner à droite
+//! - **Flèche haut** : Accélérer
+//! - **Espace** : Tirer un missile
+//! - **Échap** : Quitter le jeu
+
 use asteroid::Asteroid;
 use macroquad::prelude::*;
 use missile::Missile;
@@ -5,19 +16,22 @@ use spaceship::Spaceship;
 use std::thread;
 use std::time::Duration;
 use stellarobject::StellarObject;
-//use std::io;
 
 mod asteroid;
 mod missile;
 mod spaceship;
 mod stellarobject;
 
-fn draw(
-    asteroids: &[Asteroid],
-    spaceship: &Spaceship,
-    missiles: &[Missile],
-    texture: &Texture2D,
-) {
+/// Dessine l'état actuel du jeu.
+///
+/// Cela inclut le fond d'écran, les astéroïdes, le vaisseau spatial et les missiles.
+///
+/// # Paramètres
+/// - `asteroids`: Liste des astéroïdes à dessiner.
+/// - `spaceship`: Instance du vaisseau spatial.
+/// - `missiles`: Liste des missiles actifs.
+/// - `texture`: Texture de fond à utiliser.
+fn draw(asteroids: &[Asteroid], spaceship: &Spaceship, missiles: &[Missile], texture: &Texture2D) {
     draw_background(texture);
     draw_asteroids(asteroids);
     spaceship.draw();
@@ -26,10 +40,15 @@ fn draw(
     }
 }
 
+/// Dessine le fond d'écran.
+///
+/// # Paramètres
+/// - `background_texture`: La texture du fond.
 fn draw_background(background_texture: &Texture2D) {
     draw_texture(background_texture, 0.0, 0.0, WHITE);
 }
 
+/// Affiche l'écran de fin de partie avec le texte "Game Over".
 fn draw_game_over() {
     let screen_width = screen_width();
     let screen_height = screen_height();
@@ -43,6 +62,7 @@ fn draw_game_over() {
     );
 }
 
+/// Affiche l'écran de victoire avec le texte "You Win!".
 fn draw_you_win() {
     let screen_width = screen_width();
     let screen_height = screen_height();
@@ -56,6 +76,10 @@ fn draw_you_win() {
     );
 }
 
+/// Dessine tous les astéroïdes de la liste.
+///
+/// # Paramètres
+/// - `asteroids`: Liste des astéroïdes à dessiner.
 fn draw_asteroids(asteroids: &[Asteroid]) {
     for asteroid in asteroids {
         draw_circle_lines(
@@ -68,6 +92,14 @@ fn draw_asteroids(asteroids: &[Asteroid]) {
     }
 }
 
+/// Gère les entrées utilisateur pour contrôler le vaisseau et tirer des missiles.
+///
+/// # Paramètres
+/// - `spaceship`: Référence mutable au vaisseau spatial.
+/// - `missiles`: Liste des missiles actifs.
+///
+/// # Retour
+/// `true` si l'utilisateur souhaite quitter le jeu, sinon `false`.
 fn handle_input(spaceship: &mut Spaceship, missiles: &mut Vec<Missile>) -> bool {
     if is_key_down(KeyCode::Escape) {
         return true;
@@ -89,6 +121,12 @@ fn handle_input(spaceship: &mut Spaceship, missiles: &mut Vec<Missile>) -> bool 
     false
 }
 
+/// Met à jour les positions et les états des objets dans le jeu.
+///
+/// # Paramètres
+/// - `asteroids`: Liste des astéroïdes.
+/// - `spaceship`: Référence mutable au vaisseau spatial.
+/// - `missiles`: Liste des missiles actifs.
 fn update_model(
     asteroids: &mut [Asteroid],
     spaceship: &mut Spaceship,
@@ -104,6 +142,15 @@ fn update_model(
     }
 }
 
+/// Gère les collisions entre objets stellaires (vaisseau, missiles, astéroïdes).
+///
+/// # Paramètres
+/// - `asteroids`: Liste des astéroïdes.
+/// - `spaceship`: Référence au vaisseau spatial.
+/// - `missiles`: Liste des missiles actifs.
+///
+/// # Retour
+/// `true` si le jeu doit se terminer en raison d'une collision ou de la victoire, sinon `false`.
 fn handle_collisions(
     asteroids: &mut Vec<Asteroid>,
     spaceship: &Spaceship,
@@ -132,8 +179,15 @@ fn handle_collisions(
     false
 }
 
-//si deux astéroïdes entrent en collision,ceux de même taille se divisent,
-//tandis que si leur taille est différente,c'est le plus petit qui se divise.
+/// Détecte et gère les collisions entre astéroïdes.
+///
+/// Si deux astéroïdes entrent en collision, ils se divisent si leur taille est égale.
+/// Si leurs tailles sont différentes, le plus petit se divise.
+///
+/// # Paramètres
+/// - `asteroids`: Liste des astéroïdes.
+/// - `new_asteroids`: Liste des nouveaux fragments d'astéroïdes.
+/// - `to_remove`: Liste des indices des astéroïdes à supprimer.
 fn handle_asteroid_collisions(
     asteroids: &mut Vec<Asteroid>,
     new_asteroids: &mut Vec<Asteroid>,
@@ -166,6 +220,14 @@ fn handle_asteroid_collisions(
     }
 }
 
+/// Détecte si le vaisseau spatial est entré en collision avec un astéroïde.
+///
+/// # Paramètres
+/// - `asteroids`: Liste des astéroïdes.
+/// - `spaceship`: Référence au vaisseau spatial.
+///
+/// # Retour
+/// `true` si une collision est détectée, sinon `false`.
 fn handle_spaceship_asteroid_collision(asteroids: &[Asteroid], spaceship: &Spaceship) -> bool {
     for asteroid in asteroids.iter() {
         if spaceship.collide(asteroid) {
@@ -175,6 +237,13 @@ fn handle_spaceship_asteroid_collision(asteroids: &[Asteroid], spaceship: &Space
     false
 }
 
+/// Détecte et gère les collisions entre missiles et astéroïdes.
+///
+/// # Paramètres
+/// - `missiles`: Liste des missiles.
+/// - `asteroids`: Liste des astéroïdes.
+/// - `new_asteroids`: Liste des nouveaux fragments d'astéroïdes.
+/// - `to_remove`: Liste des indices des astéroïdes à supprimer.
 fn handle_missile_asteroid_collisions(
     missiles: &mut Vec<Missile>,
     asteroids: &mut Vec<Asteroid>,
@@ -210,6 +279,11 @@ fn handle_missile_asteroid_collisions(
     }
 }
 
+/// Supprime les astéroïdes qui ont été détruits suite à des collisions.
+///
+/// # Paramètres
+/// - `asteroids`: Liste des astéroïdes à modifier.
+/// - `to_remove`: Liste des indices des astéroïdes à supprimer.
 fn remove_collided_asteroids(asteroids: &mut Vec<Asteroid>, to_remove: &[usize]) {
     let mut to_remove_sorted = to_remove.to_vec();
     to_remove_sorted.sort_unstable();
@@ -222,6 +296,10 @@ fn remove_collided_asteroids(asteroids: &mut Vec<Asteroid>, to_remove: &[usize])
     }
 }
 
+/// Fonction principale qui initialise et exécute le jeu.
+///
+/// Cette fonction initialise le jeu, gère l'affichage des menus, les choix de difficulté,
+/// et lance la boucle principale du jeu.
 #[macroquad::main("Asteroids game")]
 async fn main() {
     let background_texture = load_texture("../img/asteroide.png").await.unwrap();
@@ -233,12 +311,11 @@ async fn main() {
 
     let mut selected_difficulty = false;
 
+    // Sélection de la difficulté dans le menu
     while !selected_difficulty {
         clear_background(BLACK);
 
-        //Les paramètres sont créés dans la boucle while afin de pouvoir
-        //modifier la taille de la fenêtre de jeu en fonction des besoins
-        //de l'utilisateur, sans affecter la jouabilité.
+        // Paramètres pour la taille des boutons et du texte dans le menu
         let screen_width = screen_width();
         let screen_height = screen_height();
 
@@ -260,6 +337,7 @@ async fn main() {
             WHITE,
         );
 
+        // Sélection de la difficulté en fonction de la position du clic de la souris
         if is_mouse_button_pressed(MouseButton::Left) {
             let (mx, my) = mouse_position();
 
@@ -287,6 +365,7 @@ async fn main() {
             }
         }
 
+        // Affichage des boutons de sélection de difficulté
         draw_rectangle(button_x, easy_y, button_width, button_height, DARKGRAY);
         draw_text(
             "Easy",
@@ -317,31 +396,36 @@ async fn main() {
         next_frame().await;
     }
 
+    // Initialisation du jeu avec la difficulté sélectionnée
     let mut asteroids = Vec::new();
     let mut spaceship = Spaceship::new(texture_spaceship);
     let mut missiles = Vec::new();
 
+    // Création des astéroïdes en fonction de la difficulté
     for _ in 0..difficulty {
         asteroids.push(asteroid::Asteroid::new());
     }
 
+    // Boucle principale du jeu
     loop {
-        //clear_background(BLACK);
-
+        // Dessin du jeu
         draw(&asteroids, &spaceship, &missiles, &background_texture);
 
+        // Vérification des entrées du joueur
         if handle_input(&mut spaceship, &mut missiles) {
             break;
         }
 
+        // Mise à jour des objets dans le jeu
         update_model(&mut asteroids, &mut spaceship, &mut missiles);
 
+        // Gestion des collisions et fin du jeu si nécessaire
         if handle_collisions(&mut asteroids, &spaceship, &mut missiles) {
             next_frame().await;
             thread::sleep(Duration::from_secs(3));
             break;
         }
 
-        next_frame().await
+        next_frame().await;
     }
 }
