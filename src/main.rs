@@ -1,21 +1,29 @@
-//! Jeu Asteroids développé avec Macroquad
+//! Jeu Asteroids développé avec Macroquad et Gamepads
 //!
 //! Ce programme implémente du jeu "Asteroids". Le joueur contrôle un vaisseau spatial pour éviter et détruire des astéroïdes en utilisant des missiles. Le jeu offre plusieurs niveaux de difficulté et détecte les collisions entre les objets (vaisseau, missiles, et astéroïdes).
 //!
-//! ## Contrôles
+//! ## Contrôles clavier
 //! - **Flèche gauche** : Tourner à gauche
 //! - **Flèche droite** : Tourner à droite
 //! - **Flèche haut** : Accélérer
 //! - **Espace** : Tirer un missile
 //! - **Échap** : Quitter le jeu
+//!
+//! ## Contrôles controller
+//! - **Joystick gauche vers la gauche** : Tourner à gauche
+//! - **Joystick gauche vers la droite** : Tourner à droite
+//! - **Joystick gauche vers le haut** : Accélérer
+//! - **R1** : Tirer un missile
+//! - **B** : Quitter le jeu
 
 use asteroid::Asteroid;
+use gamepads::Gamepads;
 use macroquad::prelude::*;
 use missile::Missile;
 use spaceship::Spaceship;
 use std::thread;
 use std::time::Duration;
-use stellarobject::StellarObject;
+use stellarobject::StellarObject; //sudo apt-get install libudev-dev
 
 mod asteroid;
 mod missile;
@@ -97,10 +105,15 @@ fn draw_asteroids(asteroids: &[Asteroid]) {
 /// # Paramètres
 /// - `spaceship`: Référence mutable au vaisseau spatial.
 /// - `missiles`: Liste des missiles actifs.
+/// - `gamepads`: Référence mutable aux manettes pour gérer les entrées.
 ///
 /// # Retour
 /// `true` si l'utilisateur souhaite quitter le jeu, sinon `false`.
-fn handle_input(spaceship: &mut Spaceship, missiles: &mut Vec<Missile>) -> bool {
+fn handle_input(
+    spaceship: &mut Spaceship,
+    missiles: &mut Vec<Missile>,
+    gamepads: &mut Gamepads,
+) -> bool {
     if is_key_down(KeyCode::Escape) {
         return true;
     }
@@ -116,6 +129,28 @@ fn handle_input(spaceship: &mut Spaceship, missiles: &mut Vec<Missile>) -> bool 
     if is_key_pressed(KeyCode::Space) {
         let missile = Missile::new(spaceship.get_position(), spaceship.get_direction());
         missiles.push(missile);
+    }
+
+    gamepads.poll();
+
+    for gamepad in gamepads.all() {
+        let left_stick = gamepad.left_stick();
+        if gamepad.is_just_pressed(gamepads::Button::ActionRight) {
+            return true;
+        }
+
+        if left_stick.0 < -0.5 {
+            spaceship.rotate_left();
+        } else if left_stick.0 > 0.5 {
+            spaceship.rotate_right();
+        }
+
+        spaceship.set_push(left_stick.1 > 0.5);
+
+        if gamepad.is_just_pressed(gamepads::Button::FrontRightLower) {
+            let missile = Missile::new(spaceship.get_position(), spaceship.get_direction());
+            missiles.push(missile);
+        }
     }
 
     false
@@ -302,6 +337,7 @@ fn remove_collided_asteroids(asteroids: &mut Vec<Asteroid>, to_remove: &[usize])
 /// et lance la boucle principale du jeu.
 #[macroquad::main("Asteroids game")]
 async fn main() {
+    let mut gamepads = Gamepads::new();
     let background_texture = load_texture("../img/asteroide.png").await.unwrap();
     background_texture.set_filter(FilterMode::Nearest);
     let texture_spaceship = load_texture("../img/spaceship.png").await.unwrap();
@@ -412,7 +448,7 @@ async fn main() {
         draw(&asteroids, &spaceship, &missiles, &background_texture);
 
         // Vérification des entrées du joueur
-        if handle_input(&mut spaceship, &mut missiles) {
+        if handle_input(&mut spaceship, &mut missiles, &mut gamepads) {
             break;
         }
 
