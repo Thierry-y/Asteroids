@@ -1,6 +1,6 @@
 //! Module pour la gestion des objets stellaires dans le jeu Asteroids.
 //!
-//! Ce module définit le trait `StellarObject` qui représente tout objet stellaire dans le jeu, 
+//! Ce module définit le trait `StellarObject` qui représente tout objet stellaire dans le jeu,
 //! ainsi que son implémentation pour les astéroïdes (`Asteroid`), les missiles (`Missile`) et les vaisseaux spatiaux (`Spaceship`).
 
 use macroquad::prelude::*;
@@ -84,4 +84,3 @@ impl StellarObject for Spaceship {
         distance < self.get_size() / 2.0 + other_size / 2.0
     }
 }
-

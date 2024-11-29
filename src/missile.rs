@@ -85,20 +85,8 @@ impl Missile {
     /// - `true` si la position est dans les limites de l'écran.
     /// - `false` si la position est hors des limites.
     fn bound_pos(pos: Vec2) -> bool {
-        let x = if pos.x < 0.0 {
-            false
-        } else if pos.x > screen_width() {
-            false
-        } else {
-            true
-        };
-        let y = if pos.y < 0.0 {
-            false
-        } else if pos.y > screen_height() {
-            false
-        } else {
-            true
-        };
+        let x = !(pos.x < 0.0 || pos.x > screen_width());
+        let y = !(pos.y < 0.0 || pos.y > screen_height());
         x & y
     }
 }

@@ -1,7 +1,7 @@
 //! Module de gestion du vaisseau spatial pour un jeu Asteroids.
 //!
-//! Ce module définit la structure et le comportement d'un vaisseau spatial, 
-//! incluant sa position, sa vitesse, sa rotation, et sa gestion des bordures d'écran. 
+//! Ce module définit la structure et le comportement d'un vaisseau spatial,
+//! incluant sa position, sa vitesse, sa rotation, et sa gestion des bordures d'écran.
 //! Le vaisseau peut être contrôlé pour avancer, tourner à gauche ou à droite.
 
 use macroquad::prelude::*;
@@ -47,10 +47,10 @@ impl Spaceship {
 
     /// Met à jour la position et la vitesse du vaisseau spatial.
     ///
-    /// - Si la propulsion est activée (`push` est `true`), une nouvelle vitesse 
+    /// - Si la propulsion est activée (`push` est `true`), une nouvelle vitesse
     ///   est ajoutée dans la direction de la rotation actuelle.
     /// - La position est ajustée pour rester dans les limites de l'écran.
-    /// - Si aucune propulsion n'est appliquée, la vitesse diminue progressivement 
+    /// - Si aucune propulsion n'est appliquée, la vitesse diminue progressivement
     ///   pour simuler l'inertie.
     pub fn update(&mut self) {
         if self.push {

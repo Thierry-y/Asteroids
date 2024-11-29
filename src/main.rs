@@ -154,7 +154,7 @@ fn update_model(
 fn handle_collisions(
     asteroids: &mut Vec<Asteroid>,
     spaceship: &Spaceship,
-    missiles: &mut Vec<Missile>,
+    missiles: &mut [Missile],
 ) -> bool {
     let mut new_asteroids = vec![];
     let mut to_remove = vec![];
@@ -189,7 +189,7 @@ fn handle_collisions(
 /// - `new_asteroids`: Liste des nouveaux fragments d'astéroïdes.
 /// - `to_remove`: Liste des indices des astéroïdes à supprimer.
 fn handle_asteroid_collisions(
-    asteroids: &mut Vec<Asteroid>,
+    asteroids: &mut [Asteroid],
     new_asteroids: &mut Vec<Asteroid>,
     to_remove: &mut Vec<usize>,
 ) {
@@ -245,8 +245,8 @@ fn handle_spaceship_asteroid_collision(asteroids: &[Asteroid], spaceship: &Space
 /// - `new_asteroids`: Liste des nouveaux fragments d'astéroïdes.
 /// - `to_remove`: Liste des indices des astéroïdes à supprimer.
 fn handle_missile_asteroid_collisions(
-    missiles: &mut Vec<Missile>,
-    asteroids: &mut Vec<Asteroid>,
+    missiles: &mut [Missile],
+    asteroids: &mut [Asteroid],
     new_asteroids: &mut Vec<Asteroid>,
     to_remove: &mut Vec<usize>,
 ) {
