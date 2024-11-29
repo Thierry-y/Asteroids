@@ -156,3 +156,53 @@ impl Asteroid {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Les fonctions test_asteroid_new() et test_asteroid_move() ne passent pas les tests car elles utilisent les fonctions 
+    // new_alea_pos() et bound_pos() qui appellent screen_width() et screen_height() de macroquad window, 
+    // mais ces deux valeurs ne peuvent pas être récupérées dans le test. Une solution pour que les tests passent est de remplacer 
+    // toutes les occurrences de screen_width() par 1920.0 et screen_height() par 1080.0 dans le code.
+
+    // #[test]
+    // fn test_asteroid_new() {
+    //     let asteroid = Asteroid::new();
+    //     println!("size: {:?}", asteroid.size);
+    //     assert_eq!(asteroid.size, Asteroid::LARGE);
+    //     assert!(asteroid.position.x >= 0.0 && asteroid.position.x <= screen_width());
+    //     assert!(asteroid.position.y >= 0.0 && asteroid.position.y <= screen_height());
+    // }
+
+    #[test]
+    fn test_asteroid_split_large() {
+        let asteroid = Asteroid::with_size(Asteroid::LARGE, vec2(50.0, 50.0));
+        let children = asteroid.split();
+        assert_eq!(children.len(), 2);
+        assert_eq!(children[0].size, Asteroid::MEDIUM);
+        assert_eq!(children[1].size, Asteroid::MEDIUM);
+    }
+
+    #[test]
+    fn test_asteroid_split_small() {
+        let asteroid = Asteroid::with_size(Asteroid::SMALL, vec2(50.0, 50.0));
+        let children = asteroid.split();
+        assert!(children.is_empty());
+    }
+
+    // #[test]
+    // fn test_asteroid_move() {
+    //     let mut asteroid = Asteroid::new();
+    //     let initial_position = asteroid.position;
+    //     asteroid.move_object();
+    //     assert_ne!(asteroid.position, initial_position); 
+    // }
+
+    #[test]
+    fn test_bound_to() {
+        assert_eq!(Asteroid::bound_to(-10.0, 100.0), 110.0);
+        assert_eq!(Asteroid::bound_to(110.0, 100.0), 10.0);
+        assert_eq!(Asteroid::bound_to(50.0, 100.0), 50.0);
+    }
+}
