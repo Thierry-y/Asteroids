@@ -465,3 +465,62 @@ async fn main() {
         next_frame().await;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_asteroid_collision_handling() {
+        let mut asteroids = vec![
+            Asteroid::with_size(Asteroid::MEDIUM, Vec2::new(100.0, 100.0)),
+            Asteroid::with_size(Asteroid::MEDIUM, Vec2::new(105.0, 100.0)),
+        ];
+        let mut new_asteroids = Vec::new();
+        let mut to_remove = Vec::new();
+
+        handle_asteroid_collisions(&mut asteroids, &mut new_asteroids, &mut to_remove);
+
+        assert_eq!(to_remove.len(), 2);
+        assert!(new_asteroids.len() > 0);
+    }
+
+    #[test]
+    fn test_missile_asteroid_collision() {
+        let mut asteroids = vec![Asteroid::with_size(
+            Asteroid::MEDIUM,
+            Vec2::new(100.0, 100.0),
+        )];
+
+        let missile_position = Vec2::new(100.0, 100.0);
+        let missile_angle = 0.0;
+        let mut missiles = vec![Missile::new(missile_position, missile_angle)];
+
+        let mut new_asteroids = Vec::new();
+        let mut to_remove = Vec::new();
+
+        handle_missile_asteroid_collisions(
+            &mut missiles,
+            &mut asteroids,
+            &mut new_asteroids,
+            &mut to_remove,
+        );
+
+        assert_eq!(to_remove.len(), 1);
+        assert!(new_asteroids.len() > 0 || asteroids.is_empty());
+    }
+
+    #[test]
+    fn test_remove_collided_asteroids() {
+        let mut asteroids = vec![
+            Asteroid::with_size(Asteroid::MEDIUM, Vec2::new(100.0, 100.0)),
+            Asteroid::with_size(Asteroid::MEDIUM, Vec2::new(200.0, 200.0)),
+        ];
+        let to_remove = vec![0];
+
+        remove_collided_asteroids(&mut asteroids, &to_remove);
+
+        assert_eq!(asteroids.len(), 1);
+        assert_eq!(asteroids[0].get_position(), Vec2::new(200.0, 200.0));
+    }
+}

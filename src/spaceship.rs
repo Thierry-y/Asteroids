@@ -26,7 +26,7 @@ impl Spaceship {
     /// Vitesse de rotation du vaisseau spatial.
     pub const ROTATION_SPEED: f32 = 0.05;
     /// Intensité de la poussée appliquée au vaisseau spatial.
-    pub const SPEED: f32 = 0.1;
+    pub const SPEED: f32 = 0.05;
 
     /// Crée un nouveau vaisseau spatial centré sur l'écran avec une texture donnée.
     ///
@@ -139,5 +139,35 @@ impl Spaceship {
         } else {
             coord
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use macroquad::texture::Texture2D;
+
+    #[macroquad::test]
+    async fn test_spaceship_new_update() {
+        let texture = Texture2D::from_rgba8(1, 1, &[255, 255, 255, 255]);
+
+        let mut spaceship = Spaceship::new(texture);
+
+        let expected_position = vec2(screen_width() / 2.0, screen_height() / 2.0);
+
+        assert_eq!(spaceship.position, expected_position);
+        assert_eq!(spaceship.velocity, vec2(0.0, 0.0));
+        assert_eq!(spaceship.rotation, 0.0);
+        assert_eq!(spaceship.push, false);
+
+        spaceship.set_push(true);
+        spaceship.update();
+
+        assert!(spaceship.position != vec2(screen_width() / 2.0, screen_height() / 2.0));
+
+        let previous_velocity = spaceship.velocity;
+        spaceship.set_push(false);
+        spaceship.update();
+        assert!(spaceship.velocity.length() < previous_velocity.length());
     }
 }

@@ -161,9 +161,9 @@ impl Asteroid {
 mod tests {
     use super::*;
 
-    // Les fonctions test_asteroid_new() et test_asteroid_move() ne passent pas les tests car elles utilisent les fonctions 
-    // new_alea_pos() et bound_pos() qui appellent screen_width() et screen_height() de macroquad window, 
-    // mais ces deux valeurs ne peuvent pas être récupérées dans le test. Une solution pour que les tests passent est de remplacer 
+    // Les fonctions test_asteroid_new() et test_asteroid_move() ne passent pas les tests car elles utilisent les fonctions
+    // new_alea_pos() et bound_pos() qui appellent screen_width() et screen_height() de macroquad window,
+    // mais ces deux valeurs ne peuvent pas être récupérées dans le test. Une solution pour que les tests passent est de remplacer
     // toutes les occurrences de screen_width() par 1920.0 et screen_height() par 1080.0 dans le code.
 
     // #[test]
@@ -196,7 +196,7 @@ mod tests {
     //     let mut asteroid = Asteroid::new();
     //     let initial_position = asteroid.position;
     //     asteroid.move_object();
-    //     assert_ne!(asteroid.position, initial_position); 
+    //     assert_ne!(asteroid.position, initial_position);
     // }
 
     #[test]

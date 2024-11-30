@@ -90,3 +90,46 @@ impl Missile {
         x & y
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_missile_new() {
+        let spaceship_position = Vec2::new(100.0, 200.0);
+        let spaceship_rotation = std::f32::consts::PI / 4.0;
+        let missile = Missile::new(spaceship_position, spaceship_rotation);
+        assert_eq!(missile.position, spaceship_position);
+
+        let expected_velocity = Vec2::from_angle(spaceship_rotation) * Missile::SPEED;
+        assert!((missile.velocity.x - expected_velocity.x).abs() < f32::EPSILON);
+        assert!((missile.velocity.y - expected_velocity.y).abs() < f32::EPSILON);
+
+        assert!(missile.active);
+    }
+
+    // Les tests macroquad::test dans missile et spaceship ne peuvent pas coexister en même temps. Si l'on commente l'un des deux,
+    // les tests se déroulent correctement, mais si les deux sont actifs, l'un d'entre eux échoue. Cela pourrait être dû à
+    // une erreur causée par l'asynchronisme de macroquad.
+
+    // #[macroquad::test]
+    // async fn test_missile_update() {
+    //     let spaceship1_position = Vec2::new(100.0,100.0);
+    //     let spaceship1_rotation = 0.0;
+    //     let mut missile = Missile::new(spaceship1_position, spaceship1_rotation);
+    //     missile.update();
+    //     let expected1_position = spaceship1_position + Vec2::from_angle(spaceship1_rotation) * Missile::SPEED;
+    //     assert_eq!(missile.position, expected1_position);
+
+    //     assert!(missile.is_active());
+
+    //     missile.position = Vec2::new(-10.0, -10.0);
+    //     missile.update();
+    //     assert!(!missile.is_active());
+
+    //     missile.position = Vec2::new(screen_width() - 1.0, screen_height() - 1.0);
+    //     missile.update();
+    //     assert!(!missile.is_active());
+    // }
+}
