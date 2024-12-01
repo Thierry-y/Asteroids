@@ -90,11 +90,10 @@ fn draw_you_win() {
 /// - `asteroids`: Liste des astéroïdes à dessiner.
 fn draw_asteroids(asteroids: &[Asteroid]) {
     for asteroid in asteroids {
-        draw_circle_lines(
+        draw_circle(
             asteroid.get_position().x,
             asteroid.get_position().y,
             asteroid.get_size() / 2.0,
-            1.0,
             YELLOW,
         );
     }
@@ -171,7 +170,7 @@ fn update_model(
         asteroid.move_object();
     }
     spaceship.update();
-    missiles.retain(|missile| missile.is_active());
+    missiles.retain(|missile| missile.is_active()); // Recevoir uniquement les missiles en état d'activation.
     for missile in missiles {
         missile.update();
     }
@@ -195,10 +194,12 @@ fn handle_collisions(
     let mut to_remove = vec![];
     handle_asteroid_collisions(asteroids, &mut new_asteroids, &mut to_remove);
 
-    if handle_spaceship_asteroid_collision(asteroids, spaceship) {
-        draw_game_over();
-        return true;
-    }
+    let spaceship_collision = handle_spaceship_asteroid_collision(
+        asteroids,
+        spaceship,
+        &mut new_asteroids,
+        &mut to_remove,
+    );
 
     handle_missile_asteroid_collisions(missiles, asteroids, &mut new_asteroids, &mut to_remove);
 
@@ -208,6 +209,10 @@ fn handle_collisions(
 
     if asteroids.is_empty() {
         draw_you_win();
+        return true;
+    }
+
+    if spaceship_collision {
         return true;
     }
 
@@ -263,9 +268,29 @@ fn handle_asteroid_collisions(
 ///
 /// # Retour
 /// `true` si une collision est détectée, sinon `false`.
-fn handle_spaceship_asteroid_collision(asteroids: &[Asteroid], spaceship: &Spaceship) -> bool {
-    for asteroid in asteroids.iter() {
-        if spaceship.collide(asteroid) {
+fn handle_spaceship_asteroid_collision(
+    asteroids: &mut [Asteroid],
+    spaceship: &Spaceship,
+    new_asteroids: &mut Vec<Asteroid>,
+    to_remove: &mut Vec<usize>,
+) -> bool {
+    for (asteroid_index, asteroid) in asteroids.iter_mut().enumerate() {
+        if asteroid.collide(spaceship) {
+            match asteroid.get_size() {
+                Asteroid::LARGE => {
+                    println!("success");
+                    new_asteroids.extend(asteroid.split());
+                    to_remove.push(asteroid_index);
+                }
+                Asteroid::MEDIUM => {
+                    new_asteroids.extend(asteroid.split());
+                    to_remove.push(asteroid_index);
+                }
+                Asteroid::SMALL => {
+                    to_remove.push(asteroid_index);
+                }
+                _ => {}
+            }
             return true;
         }
     }
@@ -436,6 +461,7 @@ async fn main() {
     let mut asteroids = Vec::new();
     let mut spaceship = Spaceship::new(texture_spaceship);
     let mut missiles = Vec::new();
+    let mut health = 3;
 
     // Création des astéroïdes en fonction de la difficulté
     for _ in 0..difficulty {
@@ -457,6 +483,12 @@ async fn main() {
 
         // Gestion des collisions et fin du jeu si nécessaire
         if handle_collisions(&mut asteroids, &spaceship, &mut missiles) {
+            health -= 1;
+            println!("{}", health);
+        }
+
+        if health < 0 {
+            draw_game_over();
             next_frame().await;
             thread::sleep(Duration::from_secs(3));
             break;
