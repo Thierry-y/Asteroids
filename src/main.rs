@@ -84,6 +84,24 @@ fn draw_you_win() {
     );
 }
 
+fn draw_health_bar(health: f32) {
+    let bar_width = 100.0;
+    let bar_height = 20.0;
+    let bar_x = 20.0;
+    let bar_y = screen_height() - bar_height - 20.0;
+
+    draw_rectangle(
+        bar_x,
+        bar_y,
+        bar_width,
+        bar_height,
+        Color::from_rgba(50, 50, 50, 200),
+    );
+
+    let current_health_width = bar_width * health;
+    draw_rectangle(bar_x, bar_y, current_health_width, bar_height, GREEN);
+}
+
 /// Dessine tous les astéroïdes de la liste.
 ///
 /// # Paramètres
@@ -265,6 +283,8 @@ fn handle_asteroid_collisions(
 /// # Paramètres
 /// - `asteroids`: Liste des astéroïdes.
 /// - `spaceship`: Référence au vaisseau spatial.
+/// - `new_asteroids`: Liste des nouveaux fragments d'astéroïdes.
+/// - `to_remove`: Liste des indices des astéroïdes à supprimer.
 ///
 /// # Retour
 /// `true` si une collision est détectée, sinon `false`.
@@ -278,7 +298,6 @@ fn handle_spaceship_asteroid_collision(
         if asteroid.collide(spaceship) {
             match asteroid.get_size() {
                 Asteroid::LARGE => {
-                    println!("success");
                     new_asteroids.extend(asteroid.split());
                     to_remove.push(asteroid_index);
                 }
@@ -461,7 +480,7 @@ async fn main() {
     let mut asteroids = Vec::new();
     let mut spaceship = Spaceship::new(texture_spaceship);
     let mut missiles = Vec::new();
-    let mut health = 3;
+    let mut health = 3.0;
 
     // Création des astéroïdes en fonction de la difficulté
     for _ in 0..difficulty {
@@ -472,6 +491,7 @@ async fn main() {
     loop {
         // Dessin du jeu
         draw(&asteroids, &spaceship, &missiles, &background_texture);
+        draw_health_bar(health);
 
         // Vérification des entrées du joueur
         if handle_input(&mut spaceship, &mut missiles, &mut gamepads) {
@@ -483,11 +503,10 @@ async fn main() {
 
         // Gestion des collisions et fin du jeu si nécessaire
         if handle_collisions(&mut asteroids, &spaceship, &mut missiles) {
-            health -= 1;
-            println!("{}", health);
+            health -= 1.0;
         }
 
-        if health < 0 {
+        if health < 0.0 {
             draw_game_over();
             next_frame().await;
             thread::sleep(Duration::from_secs(3));
