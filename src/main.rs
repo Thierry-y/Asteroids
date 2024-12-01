@@ -84,6 +84,7 @@ fn draw_you_win() {
     );
 }
 
+/// Affiche l'écran un affichage visuel bouclier.
 fn draw_health_bar(health: f32) {
     let bar_width = 100.0;
     let bar_height = 20.0;
@@ -225,12 +226,23 @@ fn handle_collisions(
 
     asteroids.extend(new_asteroids);
 
-    if asteroids.is_empty() {
-        draw_you_win();
+    if spaceship_collision {
         return true;
     }
 
-    if spaceship_collision {
+    false
+}
+
+/// Gère la condition de victoire en vérifiant si la liste des astéroïdes est vide.
+///
+/// # Paramètres
+/// * `asteroids` - Une slice à un vecteur d'astéroïdes, représentant les objets restants dans le jeu.
+///
+/// # Retour
+/// Retourne `true` si tous les astéroïdes ont été détruits et le joueur a gagné, sinon retourne `false`.
+fn handle_win(asteroids: &[Asteroid]) -> bool {
+    if asteroids.is_empty() {
+        draw_you_win();
         return true;
     }
 
@@ -501,13 +513,21 @@ async fn main() {
         // Mise à jour des objets dans le jeu
         update_model(&mut asteroids, &mut spaceship, &mut missiles);
 
-        // Gestion des collisions et fin du jeu si nécessaire
+        // Gestion des collisions
         if handle_collisions(&mut asteroids, &spaceship, &mut missiles) {
             health -= 1.0;
         }
 
+        // Gestion de fin du jeu
         if health < 0.0 {
             draw_game_over();
+            next_frame().await;
+            thread::sleep(Duration::from_secs(3));
+            break;
+        }
+
+        // Gestion de la condition de victoire
+        if handle_win(&asteroids) {
             next_frame().await;
             thread::sleep(Duration::from_secs(3));
             break;
